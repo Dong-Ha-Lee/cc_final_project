@@ -8,7 +8,7 @@ for finals:
 - water rise as the day goes on and the other way if night
 - time element */
 
-
+var bearx,beary,sunx,suny,moonx,moony;
 var sea, backgroundImage, sun, moon, day, bear, n, ground;
 var icePlate = [];
 var sun_orbit_stops_xpos = [];
@@ -23,14 +23,21 @@ var s24;
 var vertical_midpoint;
 var mid_start_x;
 var move = false;
-var rand;
+var seaRise;
 var plate_boundary;
 var step = 0;
 var bear_length;
 var x_trans, y_trans;
 var position = 1;
+var weatherData;
 
+function preload(){
+	// weather id = https://openweathermap.org/weather-conditions
+	var url = 'http://api.openweathermap.org/data/2.5/weather?q=Churchill&APPID=65f68b9f954837334ed821398fef3b96';
+	weatherData = loadJSON(url);
+}
 function setup() {
+
 	createCanvas(windowWidth, windowHeight);
 	background(255);
 	//set variables
@@ -111,6 +118,12 @@ function setup() {
 	sun.display(sun_orbit_stops_xpos[0], sun_orbit_stops_ypos[0]);
 	moon.display(moon_orbit_stops_xpos[0], moon_orbit_stops_ypos[0]);
 	bear.draw(bearposition_x[0], bearposition_y[0]);
+	bearx=0;
+	beary=0;
+	sunx=0;
+	suny=0;
+	moonx=0;
+	moony=0;
 	// bear.translate(x_gridpoint_12scale[3],y_gridpoint_12scale[7]);
 
 	// quad(width / 6, height / 2 + height / 12, width * 5 / 6, height / 2 + height / 12, width, height - height / 12, 0, height - height / 12);
@@ -119,44 +132,43 @@ function setup() {
 }
 
 
-function draw() {}
+function draw() {
+ ground.display();
+ sea.display();
+ background_image.display(day);
+	//
+ sun.display(sun_orbit_stops_xpos[0], sun_orbit_stops_ypos[0]);
+ moon.display(moon_orbit_stops_xpos[0], moon_orbit_stops_ypos[0]);
+	bear.draw(bearposition_x[bearx], bearposition_y[beary]);
+}
 
 function keyPressed() {
-	console.log(position + "   position");
-
-	if (icePlate[position].checkColor() == 253) { // end of the game
-		background_image.end();
-	} else {
-		step++;
-		if (step == 6) step = 0;
-		if (step == 4) day = false;
-		if (step == 0) day = true;
-		rand = random(0, 100);
-		sea.display();
-		sea.move(day, rand);
-		background_image.display(day);
-
-		sun.move(step);
-		moon.move(step);
-		ground.display();
-
-		for (var h = 0; h < 9; h++) {
-
-			icePlate[h].display();
-		}
-		bear.move(keyCode);
-		if (day) {
-			var ra = int(random(0, 8));
-			console.log(ra);
-			icePlate[ra].melt();
-			icePlate[ra].display();
-		}
-		if (!day) {
-			for (var z = 0; z < 9; z++) {
-				icePlate[z].color = color(255);
+			if(keyCode == LEFT_ARROW){
+				bearx-=1;
+				beary-=1;
 			}
-		}
+	if(keyCode == RIGHT_ARROW){
+			bearx += 1;
+			beary += 1;
 	}
+	if(keyCode == UP_ARROW){
+		bearx-=4;
+		beary-=4;
+	}
+	if(keyCode == DOWN_ARROW){
+		bearx+=4;
+		beary+=4;
+	}
+			if(bearx > 8){
+				bearx=0;
+				beary=0;
+			}
+			if(bearx<0){
+				bearx=8;
+				beary=8;
+			}
+			//jump
+			bear.jump(bearposition_x[bearx],bearposition_y[beary]);
 }
 
 function Ground() {
@@ -199,6 +211,7 @@ function Sea() {
 }
 
 function Background_image() {
+	this.id = weatherData.weather.main;
 	this.daycolor = color(168, 203, 255);
 	this.nightcolor = color(0, 0, 0);
 	this.end = function() {
@@ -210,6 +223,7 @@ function Background_image() {
 		text("The LAST POLAR BEAR Died", width / 2, height / 2);
 	}
 	this.display = function(day) {
+		//  -TODO- Rain snow sunny cloudy /day &night
 		if (day) {
 			fill(this.daycolor);
 			noStroke();
@@ -323,6 +337,7 @@ function Iceplate(start_x, start_y, str) {
 		return length;
 	}
 	this.melt = function() {
+		// -TODO- fill with decreasing opacity
 		this.r = 0;
 		this.g = 105;
 		this.b = 148;
@@ -336,6 +351,12 @@ function Iceplate(start_x, start_y, str) {
 }
 
 function Polarbear(yhgt) {
+	this.x = bearposition_x[0];
+	this.y = bearposition_y[0];
+	this.gravity = 1;
+	this.lift = -20;
+	this.velocity = 0;
+
 	this.draw = function(x, y) {
 		ellipseMode(CENTER);
 		//ears
@@ -370,50 +391,8 @@ function Polarbear(yhgt) {
 		// ellipse(width/2+45,height/3+200,50,50);
 		arc(100 / 2 + 45 / 2 + x, 175 / 2 + 70 + y, 25, 25, radians(160), radians(20), CHORD);
 	}
-	this.move = function(kc) { //leftbottom position
-			if (kc == LEFT_ARROW) {
-				position = position - 1;
-			}
-			if (kc == RIGHT_ARROW) {
-				position = position + 1;
-			}
-			switch (position) {
-				case -1:
-					position = 8;
-					bear.draw(bearposition_x[8], bearposition_y[8]);
-					break;
-				case 0:
-					bear.draw(bearposition_x[0], bearposition_y[0]);
-					break;
-				case 1:
-					bear.draw(bearposition_x[1], bearposition_y[1]);
-					break;
-				case 2:
-					bear.draw(bearposition_x[2], bearposition_y[2]);
-					break;
-				case 3:
-					bear.draw(bearposition_x[3], bearposition_y[3]);
-					break;
-				case 4:
-					bear.draw(bearposition_x[4], bearposition_y[4]);
-					break;
-				case 5:
-					bear.draw(bearposition_x[5], bearposition_y[5]);
-					break;
-				case 6:
-					bear.draw(bearposition_x[6], bearposition_y[6]);
-					break;
-				case 7:
-					bear.draw(bearposition_x[7], bearposition_y[7]);
-					break;
-				case 8:
-					bear.draw(bearposition_x[8], bearposition_y[8]);
-					break;
-				case 9:
-					position = 0;
-					bear.draw(bearposition_x[0], bearposition_y[0]);
 
-					break;
-											}
+	this.jump = function(x,y){
+
 	}
 }
