@@ -29,7 +29,7 @@ var step = 0;
 var bear_length;
 var x_trans, y_trans;
 var position = 1;
-var weatherData;
+var weatherData,direction;
 
 function preload(){
 	// weather id = https://openweathermap.org/weather-conditions
@@ -49,6 +49,13 @@ function setup() {
 	sun_orbit_stops_ypos = [height * 3 / 8, height / 8, height / 8, height * 3 / 8, -400, -400];
 	moon_orbit_stops_xpos = [width, x_gridpoint_12scale[5] - x_s24, x_gridpoint_12scale[9] - x_s24, 0, x_gridpoint_12scale[5] - x_s24, x_gridpoint_12scale[9] - x_s24];
 	moon_orbit_stops_ypos = [height * 3 / 8, -400, -400, height * 3 / 8, height / 8, height / 8];
+	bearx=0;
+	beary=0;
+	sunx=0;
+	suny=0;
+	moonx=0;
+	moony=0;
+	direction = "";
 	for (var i = 0; i < 9; i++) {
 		var c = 0;
 		if (i < 4) {
@@ -77,17 +84,14 @@ function setup() {
 	var x_increment = x_gridpoint_12scale[2];
 	var start_px = x_gridpoint_12scale[2];
 	var start_py = y_gridpoint_12scale[7]; //left top corner
-	var str = "";
 
 	x_trans = start_px + map(150, 0, 300, 0, x_gridpoint_12scale[2]);
 	y_trans = y_gridpoint_12scale[1];
 	for (var j = 0; j < 9; j++) {
 		if (j < 4) {
-			str = "top";
 			start_px = x_gridpoint_12scale[2] + x_increment * j;
 			icePlate[j] = new Iceplate(start_px, start_py, str); //creates IcePlates
 		} else {
-			str = "bottom";
 			start_px = x_gridpoint_12scale[1] + x_increment * (j - 4);
 			start_py = y_gridpoint_12scale[9];
 
@@ -97,11 +101,10 @@ function setup() {
 		}
 
 		icePlate[j].display();
-
 	}
 
 	//build a bear
-	bear = new Polarbear(icePlate.height);
+	bear = new Polarbear();
 	bear_length = x_gridpoint_12scale[1] - bearposition_x[0];
 
 	//display initial
@@ -118,12 +121,7 @@ function setup() {
 	sun.display(sun_orbit_stops_xpos[0], sun_orbit_stops_ypos[0]);
 	moon.display(moon_orbit_stops_xpos[0], moon_orbit_stops_ypos[0]);
 	bear.draw(bearposition_x[0], bearposition_y[0]);
-	bearx=0;
-	beary=0;
-	sunx=0;
-	suny=0;
-	moonx=0;
-	moony=0;
+
 	// bear.translate(x_gridpoint_12scale[3],y_gridpoint_12scale[7]);
 
 	// quad(width / 6, height / 2 + height / 12, width * 5 / 6, height / 2 + height / 12, width, height - height / 12, 0, height - height / 12);
@@ -146,29 +144,35 @@ function keyPressed() {
 			if(keyCode == LEFT_ARROW){
 				bearx-=1;
 				beary-=1;
+				direction="l";
 			}
 	if(keyCode == RIGHT_ARROW){
 			bearx += 1;
 			beary += 1;
+			direction="r";
 	}
 	if(keyCode == UP_ARROW){
 		bearx-=4;
 		beary-=4;
+		direction="u";
 	}
 	if(keyCode == DOWN_ARROW){
 		bearx+=4;
 		beary+=4;
+		direction="d";
 	}
 			if(bearx > 8){
 				bearx=0;
 				beary=0;
+				direction="rl" //right to left
 			}
 			if(bearx<0){
 				bearx=8;
 				beary=8;
+				direction="lr" //left to right
 			}
 			//jump
-			bear.jump(bearposition_x[bearx],bearposition_y[beary]);
+			bear.jump(bearposition_x[bearx],bearposition_y[beary],direction);
 }
 
 function Ground() {
@@ -350,14 +354,9 @@ function Iceplate(start_x, start_y, str) {
 	}
 }
 
-function Polarbear(yhgt) {
-	this.x = bearposition_x[0];
-	this.y = bearposition_y[0];
-	this.gravity = 1;
-	this.lift = -20;
-	this.velocity = 0;
+function Polarbear() {
 
-	this.draw = function(x, y) {
+	this.draw = function(x, y) { //TODO fix with variables
 		ellipseMode(CENTER);
 		//ears
 		fill(230);
@@ -392,7 +391,31 @@ function Polarbear(yhgt) {
 		arc(100 / 2 + 45 / 2 + x, 175 / 2 + 70 + y, 25, 25, radians(160), radians(20), CHORD);
 	}
 
-	this.jump = function(x,y){
+	this.jump = function(x,y,direction,target){
+		switch (direction) {
+			case "l":
+					this.lift = createVector(-x_s24,y_gridpoint_12scale[1]);
+					console.log("moving");
+				break;
+			// case "r":
+			// 		this.lift = createVector(x_s24,y_gridpoint_12scale[1]);
+			// 	break;
+			// case "u":
+			// 		this.lift = createVector(x_s24,y_gridpoint_12scale[1]);
+			// 	break;
+			// case "l":
+			// 		this.lift = createVector(-x_s24,y_gridpoint_12scale[1]);
+			// 	break;
+			// case "l":
+			// 		this.lift = createVector(-x_s24,y_gridpoint_12scale[1]);
+			// 	break;
+			//
+			// //notice default goes last = less process
+			default:
 
+		}
+
+
+		this.velocity += this.lift;
 	}
 }
