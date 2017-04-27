@@ -8,7 +8,6 @@ for finals:
 - water rise as the day goes on and the other way if night
 - time element */
 
-var bearx,beary,sunx,suny,moonx,moony;
 var sea, backgroundImage, sun, moon, day, bear, n, ground;
 var icePlate = [];
 var sun_orbit_stops_xpos = [];
@@ -29,7 +28,7 @@ var step = 0;
 var bear_length;
 var x_trans, y_trans;
 var position = 1;
-var weatherData,direction;
+var weatherData,current_weather;  //weather vars
 
 function preload(){
 	// weather id = https://openweathermap.org/weather-conditions
@@ -37,7 +36,6 @@ function preload(){
 	weatherData = loadJSON(url);
 }
 function setup() {
-
 	createCanvas(windowWidth, windowHeight);
 	background(255);
 	//set variables
@@ -49,64 +47,20 @@ function setup() {
 	sun_orbit_stops_ypos = [height * 3 / 8, height / 8, height / 8, height * 3 / 8, -400, -400];
 	moon_orbit_stops_xpos = [width, x_gridpoint_12scale[5] - x_s24, x_gridpoint_12scale[9] - x_s24, 0, x_gridpoint_12scale[5] - x_s24, x_gridpoint_12scale[9] - x_s24];
 	moon_orbit_stops_ypos = [height * 3 / 8, -400, -400, height * 3 / 8, height / 8, height / 8];
-	bearx=0;
-	beary=0;
-	sunx=0;
-	suny=0;
-	moonx=0;
-	moony=0;
-	direction = "";
-	for (var i = 0; i < 9; i++) {
-		var c = 0;
-		if (i < 4) {
-			c += x_s24 / 2;
-			bearposition_x[i] = x_gridpoint_12scale[i * 2 + 2] + c;
-			bearposition_y[i] = y_gridpoint_12scale[5];
-		} else {
-			bearposition_x[i] = x_gridpoint_12scale[(i - 4) * 2 + 1];
-			bearposition_y[i] = y_gridpoint_12scale[7];
-
-		}
-		console.log(bearposition_x[i] + "  " + bearposition_y[i]);
-	}
-	//xyxyxy
-	plate_boundary = [x_gridpoint_12scale[2], y_gridpoint_12scale[7], x_gridpoint_12scale[10], y_gridpoint_12scale[7], x_gridpoint_12scale[1], y_gridpoint_12scale[9], x_gridpoint_12scale[11], y_gridpoint_12scale[9], x_gridpoint_12scale[0], y_gridpoint_12scale[11], width, y_gridpoint_12scale[11]]
-
+	current_weather = weatherData.weather[0].main;
+	var bear_init_x = width/2;
+	var bear_init_y = height/2;
 
 	//set initial setup
-
 	sea = new Sea();
-	background_image = new Background_image();
+	background_image = new Background_image(current_weather);
 	//parameters == starting location
 	sun = new Sun(); //creates sun that rotates with 6 stops.
 	moon = new Moon(); //opposite side of sun
 	ground = new Ground();
-	var x_increment = x_gridpoint_12scale[2];
-	var start_px = x_gridpoint_12scale[2];
-	var start_py = y_gridpoint_12scale[7]; //left top corner
-
-	x_trans = start_px + map(150, 0, 300, 0, x_gridpoint_12scale[2]);
-	y_trans = y_gridpoint_12scale[1];
-	for (var j = 0; j < 9; j++) {
-		if (j < 4) {
-			start_px = x_gridpoint_12scale[2] + x_increment * j;
-			icePlate[j] = new Iceplate(start_px, start_py, str); //creates IcePlates
-		} else {
-			start_px = x_gridpoint_12scale[1] + x_increment * (j - 4);
-			start_py = y_gridpoint_12scale[9];
-
-			// 			bearposition_x[i] = start_px+map(150,0,300,0,x_gridpoint_12scale[2]);
-			// 			bearposition_y[i] = start_py+y_gridpoint_12scale[1];
-			icePlate[j] = new Iceplate(start_px, start_py, str);
-		}
-
-		icePlate[j].display();
-	}
 
 	//build a bear
-	bear = new Polarbear();
-	bear_length = x_gridpoint_12scale[1] - bearposition_x[0];
-
+	bear = new Polarbear(bear_init_x,bear_init_y);
 	//display initial
 	day = true;
 	ground.display();
@@ -137,7 +91,7 @@ function draw() {
 	//
  sun.display(sun_orbit_stops_xpos[0], sun_orbit_stops_ypos[0]);
  moon.display(moon_orbit_stops_xpos[0], moon_orbit_stops_ypos[0]);
-	bear.draw(bearposition_x[bearx], bearposition_y[beary]);
+ bear.draw(bearposition_x[bearx], bearposition_y[beary]);
 }
 
 function keyPressed() {
@@ -146,33 +100,21 @@ function keyPressed() {
 				beary-=1;
 				direction="l";
 			}
-	if(keyCode == RIGHT_ARROW){
-			bearx += 1;
-			beary += 1;
-			direction="r";
-	}
-	if(keyCode == UP_ARROW){
-		bearx-=4;
-		beary-=4;
-		direction="u";
-	}
-	if(keyCode == DOWN_ARROW){
-		bearx+=4;
-		beary+=4;
-		direction="d";
-	}
-			if(bearx > 8){
-				bearx=0;
-				beary=0;
-				direction="rl" //right to left
+			if(keyCode == RIGHT_ARROW){
+					bearx += 1;
+					beary += 1;
+					direction="r";
 			}
-			if(bearx<0){
-				bearx=8;
-				beary=8;
-				direction="lr" //left to right
+			if(keyCode == UP_ARROW){
+				bearx-=4;
+				beary-=4;
+				direction="u";
 			}
-			//jump
-			bear.jump(bearposition_x[bearx],bearposition_y[beary],direction);
+			if(keyCode == DOWN_ARROW){
+				bearx+=4;
+				beary+=4;
+				direction="d";
+			}
 }
 
 function Ground() {
@@ -214,8 +156,8 @@ function Sea() {
 	}
 }
 
-function Background_image() {
-	this.id = weatherData.weather.main;
+function Background_image(weather) {
+	this.weather = weather;
 	this.daycolor = color(168, 203, 255);
 	this.nightcolor = color(0, 0, 0);
 	this.end = function() {
@@ -232,6 +174,7 @@ function Background_image() {
 			fill(this.daycolor);
 			noStroke();
 			rect(0, 0, width, height / 4);
+
 		} else {
 			fill(this.nightcolor);
 			noStroke();
@@ -239,7 +182,6 @@ function Background_image() {
 		}
 		fill(255);
 		triangle(x_gridpoint_12scale[2], y_gridpoint_12scale[1], x_gridpoint_12scale[8], y_gridpoint_12scale[3], x_gridpoint_12scale[1], y_gridpoint_12scale[3]);
-
 	}
 }
 
@@ -394,8 +336,7 @@ function Polarbear() {
 	this.jump = function(x,y,direction,target){
 		switch (direction) {
 			case "l":
-					this.lift = createVector(-x_s24,y_gridpoint_12scale[1]);
-					console.log("moving");
+
 				break;
 			// case "r":
 			// 		this.lift = createVector(x_s24,y_gridpoint_12scale[1]);
