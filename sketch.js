@@ -29,6 +29,8 @@ var bear_length;
 var x_trans, y_trans;
 var position = 1;
 var weatherData,current_weather;  //weather vars
+var bear_pos_x,bear_pos_y
+
 
 function preload(){
 	// weather id = https://openweathermap.org/weather-conditions
@@ -48,8 +50,8 @@ function setup() {
 	moon_orbit_stops_xpos = [width, x_gridpoint_12scale[5] - x_s24, x_gridpoint_12scale[9] - x_s24, 0, x_gridpoint_12scale[5] - x_s24, x_gridpoint_12scale[9] - x_s24];
 	moon_orbit_stops_ypos = [height * 3 / 8, -400, -400, height * 3 / 8, height / 8, height / 8];
 	current_weather = weatherData.weather[0].main;
-	var bear_init_x = width/2;
-	var bear_init_y = height/2;
+	bear_pos_x = width/2;
+	bear_pos_y = height/2;
 
 	//set initial setup
 	sea = new Sea();
@@ -60,7 +62,7 @@ function setup() {
 	ground = new Ground();
 
 	//build a bear
-	bear = new Polarbear(bear_init_x,bear_init_y);
+	bear = new Polarbear(bear_pos_x,bear_pos_y);
 	//display initial
 	day = true;
 	ground.display();
@@ -74,7 +76,7 @@ function setup() {
 
 	sun.display(sun_orbit_stops_xpos[0], sun_orbit_stops_ypos[0]);
 	moon.display(moon_orbit_stops_xpos[0], moon_orbit_stops_ypos[0]);
-	bear.draw(bearposition_x[0], bearposition_y[0]);
+	bear.draw(bear_pos_x,bear_pos_y);
 
 	// bear.translate(x_gridpoint_12scale[3],y_gridpoint_12scale[7]);
 
@@ -91,30 +93,17 @@ function draw() {
 	//
  sun.display(sun_orbit_stops_xpos[0], sun_orbit_stops_ypos[0]);
  moon.display(moon_orbit_stops_xpos[0], moon_orbit_stops_ypos[0]);
- bear.draw(bearposition_x[bearx], bearposition_y[beary]);
-}
+ bear.draw(bear_pos_x,bear_pos_y);
+ if(keyIsDown(LEFT_ARROW))
+ bear_pos_x-=10;
+ if(keyIsDown(RIGHT_ARROW))
+ bear_pos_x+=10;
+ if(keyIsDown(UP_ARROW))
+ bear_pos_y-=10;
+ if(keyIsDown(DOWN_ARROW))
+ bear_pos_y+=10;
+ bear.checkBound();
 
-function keyPressed() {
-			if(keyCode == LEFT_ARROW){
-				bearx-=1;
-				beary-=1;
-				direction="l";
-			}
-			if(keyCode == RIGHT_ARROW){
-					bearx += 1;
-					beary += 1;
-					direction="r";
-			}
-			if(keyCode == UP_ARROW){
-				bearx-=4;
-				beary-=4;
-				direction="u";
-			}
-			if(keyCode == DOWN_ARROW){
-				bearx+=4;
-				beary+=4;
-				direction="d";
-			}
 }
 
 function Ground() {
@@ -333,30 +322,12 @@ function Polarbear() {
 		arc(100 / 2 + 45 / 2 + x, 175 / 2 + 70 + y, 25, 25, radians(160), radians(20), CHORD);
 	}
 
-	this.jump = function(x,y,direction,target){
-		switch (direction) {
-			case "l":
-
-				break;
-			// case "r":
-			// 		this.lift = createVector(x_s24,y_gridpoint_12scale[1]);
-			// 	break;
-			// case "u":
-			// 		this.lift = createVector(x_s24,y_gridpoint_12scale[1]);
-			// 	break;
-			// case "l":
-			// 		this.lift = createVector(-x_s24,y_gridpoint_12scale[1]);
-			// 	break;
-			// case "l":
-			// 		this.lift = createVector(-x_s24,y_gridpoint_12scale[1]);
-			// 	break;
-			//
-			// //notice default goes last = less process
-			default:
-
+	this.checkBound = function(){
+		if(bear_pos_x<0)
+		bear_pos_x+=10;
+		if(bear_pos_x>width)
+		bear_pos_x-=10;
+		if(bear_pos_y>height-160)
+		bear_pos_y-=10;
 		}
-
-
-		this.velocity += this.lift;
-	}
 }
