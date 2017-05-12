@@ -1,12 +1,10 @@
 /*
-for finals:
-- add weather api(current by city id - churchill canada) from https://openweathermap.org/current
-       > check day||night
-       > sunny, cloudy, snow, rain change accordingly
-- have the bear jump(animated with spacebar)
-- ice plate shape and opacity
-- water rise as the day goes on and the other way if night
-- time element */
+This project is to encourage people to experience days of a
+Polarbear's life indirectly through a time-limted interactive game
+
+Title: Do you feel polarbear?
+
+*/
 var hole = [];
 var sea, backgroundImage, sun, moon, day, bear, n, ground,hole;
 var sun_orbit_stops_xpos = [];
@@ -273,19 +271,19 @@ function Background_image(weather) {
 		if (day) {
 			switch(this.weather){
 				case "Rain":
-					fill(109);
+					fill(93,114,127);
 					break;
 				case "Snow":
 					fill(239,250,255);
 					break;
 				case "Sunny":
-					fill(248,255,132);
+					fill(75,185,255);
 					break;
 				case "Clouds":
 					fill(98,120,141);
 					break;
 				default:
-					fill(248,0,132);
+					fill(75,185,255);
 					break;
 
 			}
@@ -307,7 +305,7 @@ function Background_image(weather) {
 						fill(50);
 						break;
 					default:
-						fill(0);
+						fill(200);
 						break;
 				}
 			noStroke();
